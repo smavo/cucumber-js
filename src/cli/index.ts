@@ -24,7 +24,7 @@ import { IdGenerator } from '@cucumber/messages'
 import { IFormatterStream } from '../formatter'
 import { WriteStream as TtyWriteStream } from 'tty'
 import { doesNotHaveValue } from '../value_checker'
-import GherkinStreams from '@cucumber/gherkin/dist/src/stream/GherkinStreams'
+import { GherkinStreams } from '@cucumber/gherkin-streams'
 import { ISupportCodeLibrary } from '../support_code_library_builder/types'
 import { IParsedArgvFormatOptions } from './argv_parser'
 import HttpStream from '../formatter/http_stream'
@@ -159,7 +159,14 @@ export default class Cli {
   }: IGetSupportCodeLibraryRequest): ISupportCodeLibrary {
     supportCodeRequiredModules.map((module) => require(module))
     supportCodeLibraryBuilder.reset(this.cwd, newId)
-    supportCodePaths.forEach((codePath) => require(codePath))
+    supportCodePaths.forEach((codePath) => {
+      try {
+        require(codePath)
+      } catch (e) {
+        console.error(e.stack)
+        console.error('codepath: ' + codePath)
+      }
+    })
     return supportCodeLibraryBuilder.finalize()
   }
 
